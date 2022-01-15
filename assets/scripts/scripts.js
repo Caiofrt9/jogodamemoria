@@ -1,37 +1,21 @@
+// classNames
 const FRONT = 'card_front'
 const BACK = 'card_back'
 const CARD = 'card'
 const ICON = 'icon'
 
-let techs = [
-  'bootstrap',
-  'css',
-  'electron',
-  'firebase',
-  'html',
-  'javascript',
-  'jquery',
-  'mongo',
-  'node',
-  'react'
-]
-
-let cards = null
-
 startGame()
 
 function startGame() {
-  cards = createCardsFromTechs(techs)
-  shuffleCards(cards)
-  initializeCards(cards)
+  initializeCards(game.createCardsFromTechs())
 }
 
 function initializeCards(cards) {
   let gameBoard = document.getElementById('gameBoard')
+  gameBoard.innerHTML = ''
 
-  cards.forEach(card => {
+  game.cards.forEach(card => {
     let cardElement = document.createElement('div')
-
     cardElement.id = card.id
     cardElement.classList.add(CARD)
     cardElement.dataset.icon = card.icon
@@ -51,6 +35,7 @@ function createCardContent(card, cardElement) {
 function createCardFace(face, card, element) {
   let cardElementFace = document.createElement('div')
   cardElementFace.classList.add(face)
+
   if (face === FRONT) {
     let iconElement = document.createElement('img')
     iconElement.classList.add(ICON)
@@ -59,55 +44,40 @@ function createCardFace(face, card, element) {
   } else {
     cardElementFace.innerHTML = '&lt/&gt'
   }
+
   element.appendChild(cardElementFace)
 }
 
-function shuffleCards(cards) {
-  let currentIndex = cards.length
-  let randomIndex = 0
+function flipCard() {
+  if (game.setCard(this.id)) {
+    this.classList.add('flip')
+    if (game.secondCard) {
+      if (game.checkMatch()) {
+        game.clearCards()
+        if (game.checkGameOver()) {
+          let gameOverLayer = document.getElementById('gameOver')
+          gameOverLayer.style.display = 'flex'
+        }
+      } else {
+        setTimeout(() => {
+          let firstCardView = document.getElementById(game.firstCard.id)
+          let secondCardView = document.getElementById(game.secondCard.id)
 
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex--
-    ;[cards[randomIndex], cards[currentIndex]] = [
-      cards[currentIndex],
-      cards[randomIndex]
-    ]
+          firstCardView.classList.remove('flip')
+          secondCardView.classList.remove('flip')
+          game.unflipCards()
+        }, 1000)
+      }
+    }
   }
 }
 
-createCardsFromTechs(techs)
-function createCardsFromTechs(techs) {
-  let cards = []
-
-  techs.forEach(tech => {
-    cards.push(createPairFromTech(tech))
-  })
-
-  return cards.flatMap(pair => pair)
+function restart() {
+  game.clearCards()
+  startGame()
+  let gameOverLayer = document.getElementById('gameOver')
+  gameOverLayer.style.display = 'none'
 }
-
-function createPairFromTech(tech) {
-  return [
-    {
-      id: createIdWithTech(tech),
-      icon: tech,
-      flipped: false
-    },
-    {
-      id: createIdWithTech(tech),
-      icon: tech,
-      flipped: false
-    }
-  ]
-}
-
-function createIdWithTech(tech) {
-  return tech + parseInt(Math.random() * 1000)
-}
-
-function flipCard() {}
-
 // {
 //   "editor.fontSize": 16,
 //   "terminal.integrated.fontSize": 16,
